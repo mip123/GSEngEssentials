@@ -16,10 +16,91 @@
 
 package resources;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import jdk.nashorn.internal.objects.annotations.Getter;
+import jdk.nashorn.internal.parser.JSONParser;
+//import pojo.Company;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.*;
+
 // TODO - add your @Path here
+@Path("company")
+
 public class CompanyResource {
 
+    @GET
+    @Path("/data")
+    @Produces(MediaType.APPLICATION_JSON)
     // TODO - Add a @GET resource to get company data
     // Your service should return data for a given stock ticker
+    public Response getCompanyInfo(String ticker) throws IOException {
+        if(ticker == null){
+            return Response.status(Response.Status.BAD_REQUEST).entity("Stock ticker empty").build();
+        }
+        String upperCase = ticker.toUpperCase();
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("data/historicalStockData.json").getFile());
+        InputStream inputStream = new FileInputStream(file);
+
+        JsonFactory factory = new JsonFactory();
+        JsonParser  parser  = factory.createParser(inputStream);
+
+        while(!parser.isClosed()){
+            JsonToken jsonToken = parser.nextToken();
+            if(JsonToken.FIELD_NAME.equals(jsonToken)) {
+                String name = parser.getCurrentName();
+                if(name.equals("name")){
+                    //System.out.println(parser.getCurrentValue());
+                    if(ticker.equals(parser.nextTextValue())){
+                        System.out.println(parser.nextToken());
+                        jsonToken = parser.nextToken();
+                        System.out.println(parser.getText());
+
+                        parser.nextToken();
+                        System.out.println(parser.getText());
+                        parser.nextToken();
+                        System.out.println(parser.getText());
+                        if(JsonToken.FIELD_NAME.equals(jsonToken)){
+                            String dae = parser.getCurrentName();
+                            System.out.println(dae);
+                        }
+                    }
+
+
+                }
+                //System.out.println(name);
+            }
+            // System.out.println(parser.nextToken().getCurrentName());
+        }
+//
+//        //convert Object to JSONObject
+//        JSONObject jsonObject = (JSONObject)object;
+//        BufferedReader r = new BufferedReader(new FileReader(file));
+//        String currLine = r.readLine();
+//        while(currLine!=null){
+//        //System.out.println(currLine);
+//            if(currLine.contains(upperCase)){
+//                System.out.println("True");
+//            }
+//            currLine = r.readLine();
+//        }
+
+
+        return null;
+
+    }
+
+    public static void main(String[] args) throws IOException {
+        CompanyResource x = new CompanyResource();
+        x.getCompanyInfo("GOOG");
+    }
+
+
 
 }
